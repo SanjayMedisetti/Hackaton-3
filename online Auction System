@@ -1,0 +1,192 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+
+class User {
+    private String username;
+    private String email;
+    private List<Item> auctionedItems;
+    private List<Bid> bids;
+
+    public User(String username, String email) {
+        this.username = username;
+        this.email = email;
+        this.auctionedItems = new ArrayList<>();
+        this.bids = new ArrayList<>();
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void addItemForAuction(Item item) {
+        auctionedItems.add(item);
+    }
+
+    public void placeBid(Auction auction, double bidAmount) {
+        auction.placeBid(this, bidAmount);
+    }
+
+    public List<Item> getAuctionedItems() {
+        return auctionedItems;
+    }
+
+    public List<Bid> getBids() {
+        return bids;
+    }
+
+    public void addBid(Bid bid) {
+        bids.add(bid);
+    }
+}
+
+
+class Item {
+    private String itemName;
+    private String description;
+    private double startingPrice;
+
+    public Item(String itemName, String description, double startingPrice) {
+        this.itemName = itemName;
+        this.description = description;
+        this.startingPrice = startingPrice;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public double getStartingPrice() {
+        return startingPrice;
+    }
+}
+
+
+class Bid {
+    private User bidder;
+    private double bidAmount;
+
+    public Bid(User bidder, double bidAmount) {
+        this.bidder = bidder;
+        this.bidAmount = bidAmount;
+    }
+
+    public User getBidder() {
+        return bidder;
+    }
+
+    public double getBidAmount() {
+        return bidAmount;
+    }
+}
+
+
+class Auction {
+    private Item item;
+    private User auctioneer;
+    private List<Bid> bids;
+    private boolean isActive;
+
+    public Auction(Item item, User auctioneer) {
+        this.item = item;
+        this.auctioneer = auctioneer;
+        this.bids = new ArrayList<>();
+        this.isActive = true;
+    }
+
+    public void placeBid(User user, double bidAmount) {
+        if (!isActive) {
+            System.out.println("The auction is closed.");
+            return;
+        }
+
+        if (bidAmount > item.getStartingPrice() && (bids.isEmpty() || bidAmount > getHighestBid().getBidAmount())) {
+            Bid bid = new Bid(user, bidAmount);
+            bids.add(bid);
+            user.addBid(bid);
+            System.out.println(user.getUsername() + " placed a bid of $" + bidAmount + " on " + item.getItemName());
+        } else {
+            System.out.println("Bid amount too low or not higher than the current highest bid.");
+        }
+    }
+
+    public Bid getHighestBid() {
+        if (bids.isEmpty()) {
+            return null;
+        }
+        return bids.get(bids.size() - 1);
+    }
+
+    public void closeAuction() {
+        if (isActive) {
+            isActive = false;
+            if (bids.isEmpty()) {
+                System.out.println("No bids placed. Auction closed without a winner.");
+            } else {
+                Bid highestBid = getHighestBid();
+                System.out.println("Auction closed. Winner is " + highestBid.getBidder().getUsername() + " with a bid of $" + highestBid.getBidAmount() + " for " + item.getItemName());
+            }
+        } else {
+            System.out.println("The auction is already closed.");
+        }
+    }
+
+    public Item getItem() {
+        return item;
+    }
+
+    public User getAuctioneer() {
+        return auctioneer;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+}
+
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+       
+        User auctioneer = new User("John Doe", "john@example.com");
+        User bidder1 = new User("Alice", "alice@example.com");
+        User bidder2 = new User("Bob", "bob@example.com");
+
+        
+        Item item = new Item("Antique Vase", "A beautiful ancient vase from the 18th century.", 500.00);
+        auctioneer.addItemForAuction(item);
+
+        
+        Auction auction = new Auction(item, auctioneer);
+
+        
+        System.out.println("Auction started for " + item.getItemName());
+        System.out.print("Enter bid amount for " + bidder1.getUsername() + ": ");
+        double bidAmount1 = scanner.nextDouble();
+        bidder1.placeBid(auction, bidAmount1);
+
+        System.out.print("Enter bid amount for " + bidder2.getUsername() + ": ");
+        double bidAmount2 = scanner.nextDouble();
+        bidder2.placeBid(auction, bidAmount2);
+
+        System.out.print("Enter another bid amount for " + bidder1.getUsername() + ": ");
+        double bidAmount3 = scanner.nextDouble();
+        bidder1.placeBid(auction, bidAmount3);
+
+        
+        auction.closeAuction();
+
+        scanner.close();
+    }
+}
